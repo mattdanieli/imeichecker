@@ -15,41 +15,30 @@ function t(name, fn) {
 // Piccolo database di prova (il vero viene creato da scripts/build-tacdb.js)
 const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'tac-')), 'tacdb.tsv');
 fs.writeFileSync(tmp, '35354132\tApple\tiPhone 12 Pro Max\t2020\n35054526\tSamsung\tGalaxy S24+ (SM-S926U)\t2024\n01006860\tEricsson\tT28Z\t\n');
+const check = (imei) => lib.checkImei(imei, { dbFile: tmp });
 lib.resetDb();
 
 console.log('Validazione');
-t('IMEI valido (anche con spazi e trattini)', () => assert.ok(lib.validate('35-354132 646952 1').ok));
-t('Cifra di controllo errata', () => assert.ok(!lib.validate('353541326469522').ok));
-t('Lunghezza errata', () => assert.ok(!lib.validate('12345').ok));
+t('Cifra di controllo corretta', () => assert.ok(lib.luhnValid('353541326469521')));
+t('Cifra di controllo errata', () => assert.ok(!lib.luhnValid('353541326469522')));
+t('Meno di 15 cifre → errore chiaro', () => { const r = check('12345'); assert.equal(r.ok, false); assert.match(r.error, /15 cifre/); });
+t('Spazi e trattini vengono ignorati', () => assert.equal(check('35-354132 646952 1').result.imei, '353541326469521'));
 
-console.log('Riconoscimento modello');
-t('Apple iPhone 12 Pro Max 2020', () => {
-  const r = lib.checkImei('353541326469521', { dbFile: tmp }).result;
-  assert.equal(r.brand, 'Apple'); assert.equal(r.model, 'iPhone 12 Pro Max'); assert.equal(r.year, '2020'); assert.equal(r.found, true);
+console.log('Semaforo');
+t('Verde: valido e trovato (iPhone 12 Pro Max, 2020)', () => {
+  const r = check('353541326469521').result;
+  assert.equal(r.status, 'found'); assert.equal(r.brand, 'Apple'); assert.equal(r.model, 'iPhone 12 Pro Max'); assert.equal(r.year, '2020');
 });
-t('Samsung Galaxy S24+', () => {
-  const r = lib.checkImei('350545260771498', { dbFile: tmp }).result;
-  assert.equal(r.brand, 'Samsung'); assert.equal(r.year, '2024');
+t('Giallo: valido ma modello sconosciuto', () => {
+  const r = check('490154203237518').result;
+  assert.equal(r.status, 'unknown'); assert.equal(r.brand, null);
 });
-t('Modello senza anno → anno vuoto', () => {
-  lib.resetDb(); lib.loadDb(tmp);
-  assert.equal(lib.lookupTac('01006860').year, null);
+t('Rosso: cifra di controllo errata', () => {
+  const r = check('353541326469522').result;
+  assert.equal(r.status, 'invalid'); assert.equal(r.valid, false);
 });
-t('Modello sconosciuto → found=false', () => {
-  const r = lib.checkImei('490154203237518', { dbFile: tmp }).result;
-  assert.equal(r.found, false); assert.equal(r.brand, null);
-});
-t('Lo stato parte sempre da UNKNOWN (giallo)', () => {
-  assert.equal(lib.checkImei('353541326469521', { dbFile: tmp }).result.verdict, 'unknown');
-});
-t('IMEI non valido → errore chiaro', () => {
-  const r = lib.checkImei('123', { dbFile: tmp });
-  assert.equal(r.ok, false); assert.match(r.error, /15 cifre/);
-});
-t('Siti gratuiti configurati (solo https)', () => {
-  assert.ok(lib.FREE_CHECKERS.length >= 2);
-  lib.FREE_CHECKERS.forEach(c => assert.match(c.url, /^https:\/\//));
-});
+t('Rosso ma mostra comunque il modello dal TAC', () => assert.equal(check('353541326469522').result.model, 'iPhone 12 Pro Max'));
+t('Modello senza anno → anno vuoto', () => assert.equal(lib.lookupTac('01006860', tmp).year, null));
 
 const real = lib.DEFAULT_DB;
 if (fs.existsSync(real)) {
