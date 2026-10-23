@@ -1,70 +1,62 @@
-// Test automatici: avvia un finto servizio IMEI in locale e verifica che l'app interpreti bene le risposte.
+// Test automatici: validazione IMEI e riconoscimento modelli dal database gratuito.
 'use strict';
-const http = require('http');
 const assert = require('assert');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const lib = require('../src/lib/imei');
 
 let passed = 0;
-async function t(name, fn) {
-  try { await fn(); passed++; console.log('  OK  ', name); }
+function t(name, fn) {
+  try { fn(); passed++; console.log('  OK  ', name); }
   catch (e) { console.error('  FAIL', name, '\n      ', e.message); process.exitCode = 1; }
 }
 
-const server = http.createServer((req, res) => {
-  const u = new URL(req.url, 'http://x');
-  const imei = u.searchParams.get('imei');
-  const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(obj)); };
-  if (u.searchParams.get('API_KEY') !== 'good') return send(401, { detail: 'Invalid token' });
-  if (u.pathname.startsWith('/api/search_history/')) return send(200, { status: 'Done', result: { brand: 'Xiaomi', model: 'Redmi Note 13', blacklist_status: 'CLEAN', release_date: '2024-01-15' } });
-  if (imei === '353541326469521') return send(200, { status: 'Done', result: { brand: 'Apple', model: 'iPhone 12 Pro Max', blacklist_status: 'CLEAN', carrier_lock: false } });
-  if (imei === '355030794352540') return send(200, { status: 'Done', result: { brand: 'Google', model: 'Pixel 8 Pro', blacklist_status: 'BLACKLISTED' } });
-  if (imei === '350545260771498') return send(202, { status: 'Pending', history_id: 77 });
-  return send(402, { error: 'Payment Required', code: 'insufficient_credits' });
+// Piccolo database di prova (il vero viene creato da scripts/build-tacdb.js)
+const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'tac-')), 'tacdb.tsv');
+fs.writeFileSync(tmp, '35354132\tApple\tiPhone 12 Pro Max\t2020\n35054526\tSamsung\tGalaxy S24+ (SM-S926U)\t2024\n01006860\tEricsson\tT28Z\t\n');
+lib.resetDb();
+
+console.log('Validazione');
+t('IMEI valido (anche con spazi e trattini)', () => assert.ok(lib.validate('35-354132 646952 1').ok));
+t('Cifra di controllo errata', () => assert.ok(!lib.validate('353541326469522').ok));
+t('Lunghezza errata', () => assert.ok(!lib.validate('12345').ok));
+
+console.log('Riconoscimento modello');
+t('Apple iPhone 12 Pro Max 2020', () => {
+  const r = lib.checkImei('353541326469521', { dbFile: tmp }).result;
+  assert.equal(r.brand, 'Apple'); assert.equal(r.model, 'iPhone 12 Pro Max'); assert.equal(r.year, '2020'); assert.equal(r.found, true);
+});
+t('Samsung Galaxy S24+', () => {
+  const r = lib.checkImei('350545260771498', { dbFile: tmp }).result;
+  assert.equal(r.brand, 'Samsung'); assert.equal(r.year, '2024');
+});
+t('Modello senza anno → anno vuoto', () => {
+  lib.resetDb(); lib.loadDb(tmp);
+  assert.equal(lib.lookupTac('01006860').year, null);
+});
+t('Modello sconosciuto → found=false', () => {
+  const r = lib.checkImei('490154203237518', { dbFile: tmp }).result;
+  assert.equal(r.found, false); assert.equal(r.brand, null);
+});
+t('Lo stato parte sempre da UNKNOWN (giallo)', () => {
+  assert.equal(lib.checkImei('353541326469521', { dbFile: tmp }).result.verdict, 'unknown');
+});
+t('IMEI non valido → errore chiaro', () => {
+  const r = lib.checkImei('123', { dbFile: tmp });
+  assert.equal(r.ok, false); assert.match(r.error, /15 cifre/);
+});
+t('Siti gratuiti configurati (solo https)', () => {
+  assert.ok(lib.FREE_CHECKERS.length >= 2);
+  lib.FREE_CHECKERS.forEach(c => assert.match(c.url, /^https:\/\//));
 });
 
-(async () => {
-  await new Promise(r => server.listen(0, r));
-  const base = `http://127.0.0.1:${server.address().port}`;
-  console.log('Validazione');
-  await t('IMEI valido', () => assert.ok(lib.validate('35-354132 646952 1').ok));
-  await t('Cifra di controllo errata', () => assert.ok(!lib.validate('353541326469522').ok));
-  await t('Lunghezza errata', () => assert.ok(!lib.validate('12345').ok));
+const real = lib.DEFAULT_DB;
+if (fs.existsSync(real)) {
+  console.log('Database reale');
+  lib.resetDb();
+  t('Contiene più di 200.000 modelli', () => assert.ok(lib.loadDb(real).size > 200000));
+  t('Riconosce iPhone 12 Pro Max', () => assert.equal(lib.lookupTac('35354132').model, 'iPhone 12 Pro Max'));
+}
 
-  console.log('Classificazione stati');
-  const c = lib.classifyStatusValue;
-  await t('CLEAN → verde', () => assert.equal(c('CLEAN'), 'clean'));
-  await t('NOT BLACKLISTED → verde', () => assert.equal(c('Not Blacklisted'), 'clean'));
-  await t('BLACKLISTED → rosso', () => assert.equal(c('BLACKLISTED'), 'blocked'));
-  await t('Lost or Stolen → rosso', () => assert.equal(c('Lost or Stolen'), 'blocked'));
-  await t('Testo strano → giallo', () => assert.equal(c('Pending review'), 'unknown'));
-  await t('blacklisted: true → rosso', () => assert.equal(c(true, 'blacklisted'), 'blocked'));
-  await t('Nessun campo stato → giallo', () => assert.equal(lib.normalize({ brand: 'X' }, '1').verdict, 'unknown'));
-  await t('Anno da data', () => assert.equal(lib.extractYear({ release_date: '2021-09-24' }), '2021'));
-
-  console.log('Chiamate al servizio (finto)');
-  await t('Apple clean', async () => {
-    const r = await lib.checkImei({ imei: '353541326469521', apiKey: 'good', baseUrl: base });
-    assert.equal(r.verdict, 'clean'); assert.equal(r.brand, 'Apple'); assert.equal(r.model, 'iPhone 12 Pro Max'); assert.equal(r.carrierLock, false);
-  });
-  await t('Pixel blacklisted', async () => {
-    const r = await lib.checkImei({ imei: '355030794352540', apiKey: 'good', baseUrl: base });
-    assert.equal(r.verdict, 'blocked');
-  });
-  await t('Richiesta in coda → attende il risultato', async () => {
-    const r = await lib.checkImei({ imei: '350545260771498', apiKey: 'good', baseUrl: base, pollMs: 50 });
-    assert.equal(r.verdict, 'clean'); assert.equal(r.year, '2024');
-  });
-  await t('Chiave errata → messaggio chiaro', async () => {
-    await assert.rejects(lib.checkImei({ imei: '353541326469521', apiKey: 'bad', baseUrl: base }), /Chiave API/);
-  });
-  await t('Crediti finiti → messaggio chiaro', async () => {
-    await assert.rejects(lib.checkImei({ imei: '490154203237518', apiKey: 'good', baseUrl: base }), /Crediti esauriti/);
-  });
-  await t('Servizio irraggiungibile → messaggio chiaro', async () => {
-    await assert.rejects(lib.checkImei({ imei: '353541326469521', apiKey: 'good', baseUrl: 'http://127.0.0.1:1' }), /connessione/);
-  });
-  await t('Demo: IMEI sconosciuto → giallo', async () => assert.equal((await lib.demoCheck('490154203237518')).verdict, 'unknown'));
-
-  server.close();
-  console.log(`\n${passed} test superati${process.exitCode ? ', ALCUNI FALLITI' : ''}.`);
-})();
+console.log(`\n${passed} test superati${process.exitCode ? ', ALCUNI FALLITI' : ''}.`);
