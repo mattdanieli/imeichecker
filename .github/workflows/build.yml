@@ -1,0 +1,37 @@
+name: Build app
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Ricrea l'icona
+        run: node -e "const fs=require('fs');fs.writeFileSync('build/icon.png',Buffer.from(fs.readFileSync('build/icon.b64','utf8').trim(),'base64'))"
+      - run: npm install
+      - run: npm test
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        run: npm run build:win
+      - name: Build Mac
+        if: runner.os == 'macOS'
+        run: npm run build:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IMEI-Checker-Pro-${{ runner.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+          if-no-files-found: error
