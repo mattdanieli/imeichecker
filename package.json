@@ -9,9 +9,9 @@
   "scripts": {
     "start": "electron .",
     "test": "node test/run-tests.js",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:all": "electron-builder --win --mac"
+    "build:win": "electron-builder --win --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:all": "electron-builder --win --mac --publish never"
   },
   "devDependencies": {
     "electron": "^33.2.0",
