@@ -34,7 +34,7 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false
       - uses: actions/upload-artifact@v4
         with:
-          name: IMEI-Checker-Pro-${{ runner.os }}
+          name: IMEI-Model-Checker-${{ runner.os }}
           path: |
             dist/*.exe
             dist/*.dmg
