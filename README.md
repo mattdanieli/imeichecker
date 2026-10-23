@@ -1,27 +1,25 @@
-# IMEI Checker Pro
+# IMEI Model Checker
 
-App desktop **gratuita** per **Windows e Mac**: inserisci un IMEI e vedi subito
-
-- **Marca**, **Modello**, **Anno** → automatici, gratis, anche senza internet
-- Un semaforo al centro: 🟢 **CLEAN** · 🟡 **UNKNOWN** · 🔴 **RUBATO / BLOCCATO**
+App desktop **gratuita** per **Windows e Mac**: inserisci un IMEI e scopri subito **Marca**, **Modello** e **Anno** del telefono.
+Funziona **senza internet** e **senza costi**.
 
 ---
 
 ## Come si usa
 
-1. Inserisci l'IMEI (sul telefono digita `*#06#` per vederlo) e premi **Verifica**.
-2. Compaiono **Marca, Modello e Anno**. Il semaforo parte 🟡 **giallo = da verificare**.
-3. Clicca uno dei siti gratuiti (**IMEI.info**, **IMEICheck.com**, **Swappa**): l'IMEI viene copiato e il sito si apre nel browser.
-4. Incolla l'IMEI sul sito e leggi il risultato.
-5. Torna nell'app e premi **Clean**, **Rubato / Bloccato** o **Non chiaro**: il semaforo si aggiorna e il risultato resta salvato nella cronologia.
+1. Sul telefono digita `*#06#` per vedere l'IMEI.
+2. Scrivilo (o incollalo) nell'app e premi **Cerca**.
+3. Leggi **Marca, Modello e Anno** e guarda l'indicatore al centro.
 
-## Perché lo stato non è automatico?
+## L'indicatore
 
-Le liste dei telefoni rubati appartengono agli operatori e al GSMA e sono **a pagamento**.
-Non esiste un servizio gratuito che le fornisca automaticamente a un'app.
-Per questo l'app ti porta ai siti di controllo gratuiti e ti fa registrare il risultato.
+| Colore | Significa |
+|---|---|
+| 🟢 **TROVATO** | IMEI valido e modello riconosciuto |
+| 🟡 **SCONOSCIUTO** | IMEI valido, ma il modello non è nel database (telefoni molto nuovi o rari) |
+| 🔴 **IMEI NON VALIDO** | La cifra di controllo non torna: errore di battitura oppure IMEI falso o manomesso |
 
-## Da dove arrivano marca, modello e anno
+## Da dove arrivano i dati
 
 Dal database libero **[MoazEb/tac-database](https://github.com/MoazEb/tac-database)** (licenza MIT, circa 255.000 modelli).
 Le prime 8 cifre dell'IMEI (il **TAC**) identificano il modello. L'anno non è disponibile per tutti i modelli.
