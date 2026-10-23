@@ -1,55 +1,41 @@
 # IMEI Checker Pro
 
-App desktop per **Windows e Mac**: inserisci un IMEI e vedi subito
+App desktop **gratuita** per **Windows e Mac**: inserisci un IMEI e vedi subito
 
-- **Marca**, **Modello**, **Anno**
+- **Marca**, **Modello**, **Anno** → automatici, gratis, anche senza internet
 - Un semaforo al centro: 🟢 **CLEAN** · 🟡 **UNKNOWN** · 🔴 **RUBATO / BLOCCATO**
 
 ---
 
-## 1. Primo avvio (modalità DEMO)
+## Come si usa
 
-L'app parte in **modalità demo**: risultati finti, gratis, senza internet. Serve solo per provarla.
+1. Inserisci l'IMEI (sul telefono digita `*#06#` per vederlo) e premi **Verifica**.
+2. Compaiono **Marca, Modello e Anno**. Il semaforo parte 🟡 **giallo = da verificare**.
+3. Clicca uno dei siti gratuiti (**IMEI.info**, **IMEICheck.com**, **Swappa**): l'IMEI viene copiato e il sito si apre nel browser.
+4. Incolla l'IMEI sul sito e leggi il risultato.
+5. Torna nell'app e premi **Clean**, **Rubato / Bloccato** o **Non chiaro**: il semaforo si aggiorna e il risultato resta salvato nella cronologia.
 
-IMEI di prova:
+## Perché lo stato non è automatico?
 
-| IMEI | Risultato |
-|---|---|
-| `353541326469521` | 🟢 Apple iPhone 12 Pro Max |
-| `350545260771498` | 🟢 Samsung Galaxy S24 Ultra |
-| `355030794352540` | 🔴 Google Pixel 8 Pro (blacklist) |
-| qualsiasi altro valido | 🟡 Unknown |
+Le liste dei telefoni rubati appartengono agli operatori e al GSMA e sono **a pagamento**.
+Non esiste un servizio gratuito che le fornisca automaticamente a un'app.
+Per questo l'app ti porta ai siti di controllo gratuiti e ti fa registrare il risultato.
 
-## 2. Attivare i controlli reali
+## Da dove arrivano marca, modello e anno
 
-1. Registrati su **https://dash.imei.info** e copia la tua **chiave API**.
-2. Ricarica qualche euro di credito (ogni controllo costa pochi centesimi).
-3. Nell'app: **ingranaggio ⚙️** → incolla la chiave → **spegni "Modalità demo"** → **Salva**.
-4. In alto a destra deve comparire **LIVE** in verde.
+Dal database libero **[MoazEb/tac-database](https://github.com/MoazEb/tac-database)** (licenza MIT, circa 255.000 modelli).
+Le prime 8 cifre dell'IMEI (il **TAC**) identificano il modello. L'anno non è disponibile per tutti i modelli.
 
-La chiave viene salvata **cifrata** dal sistema operativo sul tuo computer.
+## Creare gli installer (.exe e .dmg)
 
-## 3. Come leggere il semaforo
+Ogni modifica caricata su GitHub avvia la build automatica (**Actions → Build app**).
+Alla fine scarichi i file da **Artifacts**. I file restano disponibili per 90 giorni.
 
-| Colore | Significa | Cosa fare |
-|---|---|---|
-| 🟢 Verde | Nessuna segnalazione di furto/smarrimento | OK |
-| 🟡 Giallo | Il servizio non ha dato uno stato chiaro, oppure c'è stato un errore | Ricontrolla più tardi o con un altro servizio |
-| 🔴 Rosso | Segnalato come rubato, smarrito o bloccato | Non acquistare |
-
-Regola di sicurezza: se qualcosa va storto l'app mostra **giallo, mai verde**.
-
-## 4. Creare gli installer (.exe e .dmg)
-
-**Metodo automatico (consigliato, funziona anche per Mac senza avere un Mac):**
-
-1. Crea un repository su GitHub e carica tutta questa cartella.
-2. Vai su **Actions** → **Build app** → **Run workflow**.
-3. Dopo ~10 minuti scarica i file da **Artifacts**: installer Windows + DMG per Mac.
-
-**Metodo manuale** (serve Node.js 18+):
+Manuale (serve Node.js 18+):
 
 ```bash
+curl -L -o tac_full.csv https://raw.githubusercontent.com/MoazEb/tac-database/main/tac_full.csv
+node scripts/build-tacdb.js tac_full.csv
 npm install
 npm start          # avvia l'app
 npm test           # test automatici
@@ -57,17 +43,6 @@ npm run build:win  # su Windows → dist/*.exe
 npm run build:mac  # su Mac → dist/*.dmg
 ```
 
-## 5. Nota per Mac
+## Nota per Mac
 
-L'app non è firmata da Apple, quindi al primo avvio macOS la blocca.
-Soluzione: **tasto destro sull'app → Apri → Apri**. Solo la prima volta.
-
-## Struttura
-
-```
-src/main.js          finestra, salvataggio impostazioni e cronologia
-src/preload.js       ponte sicuro tra interfaccia e sistema
-src/lib/imei.js      validazione IMEI, chiamata al servizio, lettura risposta
-src/renderer/        interfaccia (HTML, CSS, JS)
-test/                test automatici e screenshot
-```
+L'app non è firmata da Apple: al primo avvio usa **tasto destro sull'app → Apri → Apri**.
