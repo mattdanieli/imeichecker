@@ -1,0 +1,46 @@
+{
+  "name": "imei-checker-pro",
+  "productName": "IMEI Checker Pro",
+  "version": "1.0.0",
+  "description": "Controllo stato IMEI: marca, modello, anno e stato clean / rubato / bloccato",
+  "main": "src/main.js",
+  "author": "Matt",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "test": "node test/run-tests.js",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:all": "electron-builder --win --mac"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.matt.imeicheckerpro",
+    "productName": "IMEI Checker Pro",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["src/**/*", "package.json"],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.png",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "IMEI Checker Pro"
+    },
+    "portable": { "artifactName": "IMEI-Checker-Pro-Portable.exe" },
+    "mac": {
+      "target": [{ "target": "dmg", "arch": ["universal"] }],
+      "icon": "build/icon.png",
+      "category": "public.app-category.utilities"
+    }
+  }
+}

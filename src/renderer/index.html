@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IMEI Checker Pro</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20"><rect x="6" y="2" width="12" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">IMEI Checker <span>Pro</span></div>
+        <div class="brand-sub">Verifica stato dispositivi</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span id="modeBadge" class="mode-badge">—</span>
+      <button id="btnSettings" class="icon-btn" title="Impostazioni" aria-label="Impostazioni">
+        <svg viewBox="0 0 24 24" width="20" height="20"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <main class="main">
+      <!-- INSERIMENTO IMEI -->
+      <form id="form" class="card input-card" autocomplete="off">
+        <label for="imei" class="label">Numero IMEI <span class="hint">(digita *#06# sul telefono per vederlo)</span></label>
+        <div class="input-row">
+          <div class="input-wrap">
+            <input id="imei" inputmode="numeric" maxlength="19" placeholder="35 XXXXXX XXXXXX X" spellcheck="false">
+            <span id="counter" class="counter">0/15</span>
+          </div>
+          <button type="button" id="btnPaste" class="btn ghost" title="Incolla dagli appunti">Incolla</button>
+          <button type="submit" id="btnCheck" class="btn primary">Verifica</button>
+        </div>
+        <div id="inputMsg" class="input-msg" role="status"></div>
+      </form>
+
+      <!-- INDICATORE SEMAFORO -->
+      <section class="card status-card">
+        <div id="indicator" class="indicator state-idle" aria-live="polite">
+          <div class="ring"></div>
+          <div class="core">
+            <div id="indIcon" class="ind-icon"></div>
+            <div id="indLabel" class="ind-label">IN ATTESA</div>
+            <div id="indSub" class="ind-sub">Inserisci un IMEI per iniziare</div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <span><i class="dot g"></i>Clean</span>
+          <span><i class="dot y"></i>Unknown</span>
+          <span><i class="dot r"></i>Rubato / Bloccato</span>
+        </div>
+      </section>
+
+      <!-- DATI TELEFONO -->
+      <section class="tiles">
+        <div class="tile"><div class="tile-k">Marca</div><div id="vBrand" class="tile-v">—</div></div>
+        <div class="tile"><div class="tile-k">Modello</div><div id="vModel" class="tile-v">—</div></div>
+        <div class="tile"><div class="tile-k">Anno</div><div id="vYear" class="tile-v">—</div></div>
+      </section>
+
+      <section class="card details">
+        <div class="detail"><span>IMEI</span><b id="dImei">—</b></div>
+        <div class="detail"><span>Risposta del servizio</span><b id="dRaw">—</b></div>
+        <div class="detail"><span>Blocco operatore</span><b id="dLock">—</b></div>
+        <div class="detail"><span>Controllato il</span><b id="dDate">—</b></div>
+        <button id="btnCopy" class="btn ghost small" disabled>Copia risultato</button>
+      </section>
+    </main>
+
+    <!-- CRONOLOGIA -->
+    <aside class="side card">
+      <div class="side-head">
+        <h2>Cronologia</h2>
+        <button id="btnClearHist" class="link-btn">Svuota</button>
+      </div>
+      <ul id="history" class="history"></ul>
+      <p id="histEmpty" class="muted small">Nessun controllo ancora.</p>
+    </aside>
+  </div>
+
+  <!-- IMPOSTAZIONI -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-box">
+      <h2 id="mTitle">Impostazioni</h2>
+
+      <div class="switch-row">
+        <div>
+          <div class="label">Modalità demo</div>
+          <div class="muted small">Risultati simulati, senza internet e senza costi. Disattivala per i controlli reali.</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="sDemo"><span></span></label>
+      </div>
+
+      <label class="label" for="sKey">Chiave API IMEI.info</label>
+      <input id="sKey" type="password" class="field" placeholder="Incolla qui la tua chiave">
+      <div id="sKeyInfo" class="muted small"></div>
+      <div class="muted small">Si ottiene gratis registrandosi su <a href="#" data-ext="https://dash.imei.info">dash.imei.info</a>. I controlli costano pochi centesimi l'uno.</div>
+
+      <details class="adv">
+        <summary>Opzioni avanzate</summary>
+        <label class="label" for="sService">Numero servizio</label>
+        <input id="sService" type="number" min="0" class="field" value="0">
+        <div class="muted small">0 = controllo base (marca, modello, blacklist). Altri numeri li trovi nel pannello IMEI.info.</div>
+        <label class="label" for="sBase">Indirizzo del servizio</label>
+        <input id="sBase" type="text" class="field" spellcheck="false">
+        <button id="btnClearKey" class="link-btn danger">Elimina chiave salvata</button>
+      </details>
+
+      <div class="modal-actions">
+        <button id="btnCancel" class="btn ghost">Annulla</button>
+        <button id="btnSave" class="btn primary">Salva</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="renderer.js"></script>
+</body>
+</html>
