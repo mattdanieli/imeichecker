@@ -1,8 +1,8 @@
 {
-  "name": "imei-checker-pro",
-  "productName": "IMEI Checker Pro",
+  "name": "imei-model-checker",
+  "productName": "IMEI Model Checker",
   "version": "1.0.0",
-  "description": "Controllo stato IMEI: marca, modello, anno e stato clean / rubato / bloccato",
+  "description": "Scopri marca, modello e anno di un telefono dal suo IMEI",
   "main": "src/main.js",
   "author": "Matt",
   "license": "MIT",
@@ -18,8 +18,8 @@
     "electron-builder": "^25.1.8"
   },
   "build": {
-    "appId": "com.matt.imeicheckerpro",
-    "productName": "IMEI Checker Pro",
+    "appId": "com.matt.imeimodelchecker",
+    "productName": "IMEI Model Checker",
     "directories": { "output": "dist", "buildResources": "build" },
     "files": ["src/**/*", "package.json"],
     "win": {
@@ -34,9 +34,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "IMEI Checker Pro"
+      "shortcutName": "IMEI Model Checker"
     },
-    "portable": { "artifactName": "IMEI-Checker-Pro-Portable.exe" },
+    "portable": { "artifactName": "IMEI-Model-Checker-Portable.exe" },
     "mac": {
       "target": [{ "target": "dmg", "arch": ["universal"] }],
       "icon": "build/icon.png",
