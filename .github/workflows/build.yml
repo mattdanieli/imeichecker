@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
@@ -16,6 +17,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Scarica database modelli (gratis)
+        shell: bash
+        run: |
+          curl -sSL -o tac_full.csv https://raw.githubusercontent.com/MoazEb/tac-database/29ed8f61c6bfad300ce6b56f36c3876c4dc6a6d9/tac_full.csv
+          node scripts/build-tacdb.js tac_full.csv
       - run: npm install
       - run: npm test
       - name: Build Windows
