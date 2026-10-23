@@ -2,10 +2,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
+  info: () => ipcRenderer.invoke('app:info'),
   check: (imei) => ipcRenderer.invoke('imei:check', imei),
-  getSettings: () => ipcRenderer.invoke('settings:get'),
-  saveSettings: (s) => ipcRenderer.invoke('settings:save', s),
-  clearKey: () => ipcRenderer.invoke('settings:clearKey'),
+  mark: (payload) => ipcRenderer.invoke('imei:mark', payload),
   getHistory: () => ipcRenderer.invoke('history:get'),
   clearHistory: () => ipcRenderer.invoke('history:clear'),
   copy: (t) => ipcRenderer.invoke('clipboard:write', t),
