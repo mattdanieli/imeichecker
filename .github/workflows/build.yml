@@ -16,8 +16,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Ricrea l'icona
-        run: node -e "const fs=require('fs');fs.writeFileSync('build/icon.png',Buffer.from(fs.readFileSync('build/icon.b64','utf8').trim(),'base64'))"
       - run: npm install
       - run: npm test
       - name: Build Windows
