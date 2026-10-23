@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IMEI Checker Pro</title>
+  <title>IMEI Model Checker</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,8 +14,8 @@
         <svg viewBox="0 0 24 24" width="20" height="20"><rect x="6" y="2" width="12" height="20" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div>
-        <div class="brand-name">IMEI Checker <span>Pro</span></div>
-        <div class="brand-sub">Verifica stato dispositivi</div>
+        <div class="brand-name">IMEI <span>Model Checker</span></div>
+        <div class="brand-sub">Scopri marca, modello e anno di un telefono</div>
       </div>
     </div>
     <div class="topbar-right">
@@ -34,55 +34,27 @@
             <span id="counter" class="counter">0/15</span>
           </div>
           <button type="button" id="btnPaste" class="btn ghost" title="Incolla dagli appunti">Incolla</button>
-          <button type="submit" id="btnCheck" class="btn primary">Verifica</button>
+          <button type="submit" id="btnCheck" class="btn primary">Cerca</button>
         </div>
         <div id="inputMsg" class="input-msg" role="status"></div>
       </form>
 
-      <div class="grid2">
-        <!-- INDICATORE SEMAFORO -->
-        <section class="card status-card">
-          <div id="indicator" class="indicator state-idle" aria-live="polite">
-            <div class="ring"></div>
-            <div class="core">
-              <div id="indIcon" class="ind-icon"></div>
-              <div id="indLabel" class="ind-label">IN ATTESA</div>
-              <div id="indSub" class="ind-sub">Inserisci un IMEI per iniziare</div>
-            </div>
+      <!-- INDICATORE -->
+      <section class="card status-card">
+        <div id="indicator" class="indicator state-idle" aria-live="polite">
+          <div class="ring"></div>
+          <div class="core">
+            <div id="indIcon" class="ind-icon"></div>
+            <div id="indLabel" class="ind-label">IN ATTESA</div>
+            <div id="indSub" class="ind-sub">Inserisci un IMEI per iniziare</div>
           </div>
-          <div class="legend">
-            <span><i class="dot g"></i>Clean</span>
-            <span><i class="dot y"></i>Unknown</span>
-            <span><i class="dot r"></i>Rubato / Bloccato</span>
-          </div>
-        </section>
-
-        <!-- VERIFICA GRATUITA DELLO STATO -->
-        <section id="verify" class="card verify-card disabled">
-          <h2>Verifica lo stato <span class="free">GRATIS</span></h2>
-
-          <div class="step">
-            <div class="step-n">1</div>
-            <div class="step-body">
-              <div class="step-t">Apri un sito di controllo gratuito</div>
-              <div class="muted small">L'IMEI viene copiato in automatico: sul sito ti basta incollarlo (Ctrl+V / Cmd+V).</div>
-              <div id="checkers" class="checkers"></div>
-            </div>
-          </div>
-
-          <div class="step">
-            <div class="step-n">2</div>
-            <div class="step-body">
-              <div class="step-t">Cosa dice il sito?</div>
-              <div class="marks">
-                <button class="mark g" data-verdict="clean">Clean</button>
-                <button class="mark r" data-verdict="blocked">Rubato / Bloccato</button>
-                <button class="mark y" data-verdict="unknown">Non chiaro</button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+        </div>
+        <div class="legend">
+          <span><i class="dot g"></i>Modello trovato</span>
+          <span><i class="dot y"></i>Modello sconosciuto</span>
+          <span><i class="dot r"></i>IMEI non valido</span>
+        </div>
+      </section>
 
       <!-- DATI TELEFONO -->
       <section class="tiles">
@@ -94,7 +66,7 @@
       <section class="card details">
         <div class="detail"><span>IMEI</span><b id="dImei">—</b></div>
         <div class="detail"><span>Codice modello (TAC)</span><b id="dTac">—</b></div>
-        <div class="detail"><span>Stato impostato</span><b id="dSource">—</b></div>
+        <div class="detail"><span>Cifra di controllo</span><b id="dLuhn">—</b></div>
         <div class="detail"><span>Controllato il</span><b id="dDate">—</b></div>
         <button id="btnCopy" class="btn ghost small" disabled>Copia risultato</button>
       </section>
@@ -107,7 +79,7 @@
         <button id="btnClearHist" class="link-btn">Svuota</button>
       </div>
       <ul id="history" class="history"></ul>
-      <p id="histEmpty" class="muted small">Nessun controllo ancora.</p>
+      <p id="histEmpty" class="muted small">Nessuna ricerca ancora.</p>
       <p class="credits muted">Database modelli: <a href="#" data-ext="https://github.com/MoazEb/tac-database">MoazEb/tac-database</a> (MIT) · <span id="dbCount"></span></p>
     </aside>
   </div>
